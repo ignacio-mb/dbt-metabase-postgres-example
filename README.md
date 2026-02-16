@@ -95,6 +95,12 @@ docker compose exec analytics-db psql -U analytics_user -d analytics -c "
 "
 ```
 
+If you need to reseed, you can run:
+
+```bash
+docker compose run --rm dbt sh -c "dbt seed && dbt run"
+```
+
 ### 5. Test the migration tool
 
 Push the `dbt_project/` folder to a GitHub repo, then:

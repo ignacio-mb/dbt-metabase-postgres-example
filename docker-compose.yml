@@ -15,7 +15,7 @@ services:
       - analytics_data:/var/lib/postgresql/data
       - ./scripts/init-analytics.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U analytics_user -d analytics"]
+      test: [ "CMD-SHELL", "pg_isready -U analytics_user -d analytics" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -35,7 +35,7 @@ services:
     volumes:
       - metabase_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U metabase_user -d metabase"]
+      test: [ "CMD-SHELL", "pg_isready -U metabase_user -d metabase" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -44,7 +44,8 @@ services:
   # Metabase
   # ─────────────────────────────────────────────
   metabase:
-    image: metabase/metabase:latest
+    image: metabase/metabase-enterprise:v1.59.x
+
     container_name: metabase
     environment:
       MB_DB_TYPE: postgres
@@ -63,7 +64,7 @@ services:
       metabase-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 30
