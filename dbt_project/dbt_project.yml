@@ -1,0 +1,26 @@
+name: 'shop_analytics'
+version: '1.0.0'
+
+profile: 'shop_analytics'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  min_order_amount: 10
+
+models:
+  shop_analytics:
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ["daily"]
+    marts:
+      +materialized: table
+      +schema: marts
+      +tags: ["daily"]

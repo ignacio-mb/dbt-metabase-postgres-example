@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Cleaned customer data"
+    columns:
+      - name: customer_id
+        description: "Primary key"
+        tests: [unique, not_null]
+
+  - name: stg_products
+    description: "Cleaned product catalog"
+    columns:
+      - name: product_id
+        description: "Primary key"
+        tests: [unique, not_null]
+
+  - name: stg_orders
+    description: "Cleaned orders"
+    columns:
+      - name: order_id
+        description: "Primary key"
+        tests: [unique, not_null]
+
+  - name: stg_order_items
+    description: "Cleaned order line items with calculated line_total"
+    columns:
+      - name: order_item_id
+        description: "Primary key"
+        tests: [unique, not_null]
+
+  - name: stg_payments
+    description: "Cleaned payment transactions"
+    columns:
+      - name: payment_id
+        description: "Primary key"
+        tests: [unique, not_null]

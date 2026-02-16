@@ -1,0 +1,12 @@
+shop_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: analytics-db     # docker service name
+      port: 5432
+      user: analytics_user
+      password: analytics_pass
+      dbname: analytics
+      schema: public
+      threads: 4

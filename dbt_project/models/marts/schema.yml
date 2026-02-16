@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: "Order fact table with item counts, totals, and payment info"
+    columns:
+      - name: order_id
+        description: "Primary key"
+        tests: [unique, not_null]
+      - name: order_total
+        description: "Total order amount from line items"
+      - name: amount_paid
+        description: "Amount successfully paid"
+
+  - name: dim_customers
+    description: "Customer dimension with lifetime metrics and segmentation"
+    columns:
+      - name: customer_id
+        description: "Primary key"
+        tests: [unique, not_null]
+      - name: customer_segment
+        description: "inactive / new / returning / loyal"
+
+  - name: monthly_revenue
+    description: "Monthly revenue aggregation for reporting dashboards"
+    columns:
+      - name: month
+        description: "First day of the month"

@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "Raw data from the shop's operational database"
+    tables:
+      - name: customers
+        description: "Customer accounts"
+      - name: products
+        description: "Product catalog"
+      - name: orders
+        description: "Customer orders"
+      - name: order_items
+        description: "Line items within orders"
+      - name: payments
+        description: "Payment transactions"

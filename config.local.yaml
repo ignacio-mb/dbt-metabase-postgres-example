@@ -1,0 +1,41 @@
+# Config for testing dbt-to-metabase against the local docker environment.
+#
+# For local testing without GitHub, you can point `github.repo` at a local
+# repo you push the dbt_project/ folder to, or use a public test repo.
+
+github:
+  repo: "ignacio-mb/dbt-shop-analytics"  # push dbt_project/ here
+  branch: "main"
+  # token: set GITHUB_TOKEN env var
+
+metabase:
+  url: "http://localhost:3000"
+  username: "admin@example.com"
+  password: "Metabase123!"
+  database_id: 2                  # Updated by setup-metabase.sh output
+  default_schema: "marts"
+
+schema_mappings:
+  - dbt_folder_pattern: "staging"
+    metabase_schema: "staging"
+  - dbt_folder_pattern: "marts"
+    metabase_schema: "marts"
+
+tag_mappings:
+  - dbt_tag: "daily"
+    metabase_tag: "daily"
+  - dbt_tag: "reporting"
+    metabase_tag: "daily"
+
+default_tags:
+  - "daily"
+
+jobs:
+  - name: "Daily transforms"
+    schedule: "0 0 * * *"
+    tags: ["daily"]
+
+folder_prefix: "dbt"
+preserve_folder_structure: true
+dry_run: false
+on_conflict: "replace"
