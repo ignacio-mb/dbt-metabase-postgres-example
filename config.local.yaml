@@ -6,6 +6,7 @@
 github:
   repo: "ignacio-mb/dbt-shop-analytics"  # push dbt_project/ here
   branch: "main"
+  subdirectory: "dbt_project"
   # token: set GITHUB_TOKEN env var
 
 metabase:
