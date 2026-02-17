@@ -4,7 +4,7 @@
 # repo you push the dbt_project/ folder to, or use a public test repo.
 
 github:
-  repo: "ignacio-mb/dbt-shop-analytics"  # push dbt_project/ here
+  repo: "ignacio-mb/dbt-metabase-postgres-example"  # push dbt_project/ here
   branch: "main"
   subdirectory: "dbt_project"
   # token: set GITHUB_TOKEN env var
