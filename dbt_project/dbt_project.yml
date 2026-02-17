@@ -17,10 +17,8 @@ vars:
 models:
   shop_analytics:
     staging:
+      +schema: dbt_models_staging
       +materialized: view
-      +schema: staging
-      +tags: ["daily"]
     marts:
+      +schema: dbt_models_marts
       +materialized: table
-      +schema: marts
-      +tags: ["daily"]
