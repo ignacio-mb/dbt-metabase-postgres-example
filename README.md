@@ -55,13 +55,6 @@ After setup, open `http://localhost:3000` and log in with the credentials above.
 
 > **Note:** The script requires `curl` and `python3` on your host machine (both are pre-installed on macOS). You can override the Metabase URL with `METABASE_URL=http://your-host:3000 ./scripts/setup-metabase.sh`.
 
-# Then inside the container:
-dbt deps
-dbt seed
-dbt run
-dbt test
-```
-
 ## Project structure
 
 ```
