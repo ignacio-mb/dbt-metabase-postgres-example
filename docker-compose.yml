@@ -45,7 +45,6 @@ services:
   # ─────────────────────────────────────────────
   metabase:
     image: metabase/metabase-enterprise:v1.59.x
-
     container_name: metabase
     environment:
       MB_DB_TYPE: postgres
@@ -54,7 +53,6 @@ services:
       MB_DB_USER: metabase_user
       MB_DB_PASS: metabase_pass
       MB_DB_HOST: metabase-db
-      # Pre-configure the analytics database connection
       MB_SETUP_TOKEN: "249fa03d-fd94-4d5b-b94f-b4ebf3df681f"
     ports:
       - "3000:3000"
@@ -71,7 +69,7 @@ services:
       start_period: 60s
 
   # ─────────────────────────────────────────────
-  # dbt runner (one-shot: runs dbt seed + dbt run)
+  # dbt runner (one-shot: deps → seed → run → test)
   # ─────────────────────────────────────────────
   dbt:
     build:
@@ -86,9 +84,8 @@ services:
     working_dir: /usr/src/dbt
     environment:
       DBT_PROFILES_DIR: /usr/src/dbt
-    # Run seed + run, then exit
     command: >
-      sh -c "dbt deps && dbt seed && dbt run && echo '✅ dbt run complete'"
+      sh -c "dbt deps && dbt seed && dbt run && dbt test && echo '✅ dbt pipeline complete'"
 
 volumes:
   analytics_data:

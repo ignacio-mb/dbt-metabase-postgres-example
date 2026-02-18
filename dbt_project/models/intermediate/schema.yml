@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: int_customer_orders
+    description: "Order-grain table enriched with item totals and payment amounts"
+
+  - name: int_order_items_enriched
+    description: "Order items enriched with product, category, and margin details"
+
+  - name: int_product_performance
+    description: "Product-level sales, margin, review, and inventory metrics"

@@ -1,28 +1,102 @@
 version: 2
 
 models:
-  - name: fct_orders
-    description: "Order fact table with item counts, totals, and payment info"
+  - name: dim_dates
+    description: "Date dimension spine covering the configured date range"
     columns:
-      - name: order_id
-        description: "Primary key"
+      - name: date_key
+        description: "Primary key (calendar date)"
         tests: [unique, not_null]
-      - name: order_total
-        description: "Total order amount from line items"
-      - name: amount_paid
-        description: "Amount successfully paid"
 
   - name: dim_customers
-    description: "Customer dimension with lifetime metrics and segmentation"
+    description: "Customer dimension with lifetime metrics, segmentation, and revenue tier"
     columns:
       - name: customer_id
         description: "Primary key"
         tests: [unique, not_null]
       - name: customer_segment
-        description: "inactive / new / returning / loyal"
+        description: "prospect / new / returning / loyal"
+        tests:
+          - accepted_values:
+              values: ['prospect', 'new', 'returning', 'loyal']
+      - name: revenue_tier
+        description: "none / low / medium / high"
+        tests:
+          - accepted_values:
+              values: ['none', 'low', 'medium', 'high']
+
+  - name: dim_products
+    description: "Product dimension with sales performance, reviews, and inventory status"
+    columns:
+      - name: product_id
+        description: "Primary key"
+        tests: [unique, not_null]
+      - name: stock_status
+        description: "in_stock / low_stock / out_of_stock"
+        tests:
+          - accepted_values:
+              values: ['in_stock', 'low_stock', 'out_of_stock']
+      - name: rating_tier
+        description: "excellent / good / average / poor / no_reviews"
+        tests:
+          - accepted_values:
+              values: ['excellent', 'good', 'average', 'poor', 'no_reviews']
+
+  - name: fct_orders
+    description: "Order fact table with item totals, payments, and margin"
+    columns:
+      - name: order_id
+        description: "Primary key"
+        tests: [unique, not_null]
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: order_total
+        description: "Total order amount from line items"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: order_status
+        tests:
+          - accepted_values:
+              values: ['completed', 'processing', 'returned', 'cancelled']
+
+  - name: fct_reviews
+    description: "Review fact table with sentiment analysis and purchase context"
+    columns:
+      - name: review_id
+        description: "Primary key"
+        tests: [unique, not_null]
+      - name: sentiment
+        tests:
+          - accepted_values:
+              values: ['positive', 'neutral', 'negative']
+      - name: nps_category
+        tests:
+          - accepted_values:
+              values: ['promoter', 'passive', 'detractor']
+
+  - name: fct_order_events
+    description: "Incremental order lifecycle events with timing metrics"
+    columns:
+      - name: event_id
+        description: "Primary key"
+        tests: [unique, not_null]
 
   - name: monthly_revenue
     description: "Monthly revenue aggregation for reporting dashboards"
     columns:
       - name: month
         description: "First day of the month"
+        tests: [unique, not_null]
+
+  - name: fct_daily_sales
+    description: "Daily sales with rolling 7-day and cumulative metrics (joined to date spine)"
+    columns:
+      - name: sale_date
+        description: "Calendar date"
+        tests: [unique, not_null]

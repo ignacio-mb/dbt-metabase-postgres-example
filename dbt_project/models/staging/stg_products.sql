@@ -1,9 +1,18 @@
-{{ config(materialized='view') }}
+with source as (
+    select * from {{ source('raw', 'products') }}
+),
 
-SELECT
-    id          AS product_id,
-    name        AS product_name,
-    category,
-    price,
-    created_at
-FROM {{ source('raw', 'products') }}
+renamed as (
+    select
+        id            as product_id,
+        name          as product_name,
+        category_id,
+        supplier_id,
+        price,
+        cost,
+        price - cost  as margin,
+        created_at
+    from source
+)
+
+select * from renamed

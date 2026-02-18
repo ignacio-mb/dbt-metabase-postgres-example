@@ -1,0 +1,6 @@
+payment_method,payment_method_label,is_digital
+credit_card,Credit Card,true
+debit_card,Debit Card,true
+paypal,PayPal,true
+bank_transfer,Bank Transfer,true
+cash_on_delivery,Cash on Delivery,false

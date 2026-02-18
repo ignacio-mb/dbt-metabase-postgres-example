@@ -1,10 +1,16 @@
-{{ config(materialized='view') }}
+with source as (
+    select * from {{ source('raw', 'payments') }}
+),
 
-SELECT
-    id          AS payment_id,
-    order_id,
-    amount,
-    method      AS payment_method,
-    status      AS payment_status,
-    created_at
-FROM {{ source('raw', 'payments') }}
+renamed as (
+    select
+        id      as payment_id,
+        order_id,
+        amount,
+        method  as payment_method,
+        status  as payment_status,
+        created_at
+    from source
+)
+
+select * from renamed
