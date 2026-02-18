@@ -1,0 +1,5 @@
+order_status,status_label,is_active,is_terminal
+processing,Processing,true,false
+completed,Completed,false,true
+returned,Returned,false,true
+cancelled,Cancelled,false,true

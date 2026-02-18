@@ -1,24 +1,22 @@
 # Config for testing dbt-to-metabase against the local docker environment.
-#
-# For local testing without GitHub, you can point `github.repo` at a local
-# repo you push the dbt_project/ folder to, or use a public test repo.
 
 github:
-  repo: "ignacio-mb/dbt-metabase-postgres-example"  # push dbt_project/ here
+  repo: "ignacio-mb/dbt-metabase-postgres-example"
   branch: "main"
   subdirectory: "dbt_project"
-  # token: set GITHUB_TOKEN env var
 
 metabase:
   url: "http://localhost:3000"
   username: "admin@example.com"
   password: "Metabase123!"
-  database_id: 2                  # Updated by setup-metabase.sh output
+  database_id: 2
   default_schema: "marts"
 
 schema_mappings:
   - dbt_folder_pattern: "staging"
     metabase_schema: "staging"
+  - dbt_folder_pattern: "intermediate"
+    metabase_schema: "intermediate"
   - dbt_folder_pattern: "marts"
     metabase_schema: "marts"
 

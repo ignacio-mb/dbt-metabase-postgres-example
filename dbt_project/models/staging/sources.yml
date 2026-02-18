@@ -4,14 +4,69 @@ sources:
   - name: raw
     schema: raw
     description: "Raw data from the shop's operational database"
+    loader: postgres
+    loaded_at_field: created_at
+    freshness:
+      warn_after: { count: 24, period: hour }
+      error_after: { count: 48, period: hour }
     tables:
       - name: customers
         description: "Customer accounts"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
       - name: products
         description: "Product catalog"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
       - name: orders
         description: "Customer orders"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
       - name: order_items
         description: "Line items within orders"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
       - name: payments
         description: "Payment transactions"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
+      - name: categories
+        description: "Product category hierarchy"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
+      - name: suppliers
+        description: "Product suppliers and vendors"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
+      - name: inventory
+        description: "Current inventory levels by product and warehouse"
+        loaded_at_field: updated_at
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
+      - name: reviews
+        description: "Customer product reviews and ratings"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+
+      - name: order_events
+        description: "Order lifecycle events (placed, shipped, delivered, etc.)"
+        columns:
+          - name: id
+            tests: [unique, not_null]

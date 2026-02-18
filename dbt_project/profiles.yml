@@ -3,7 +3,7 @@ shop_analytics:
   outputs:
     dev:
       type: postgres
-      host: analytics-db     # docker service name
+      host: analytics-db
       port: 5432
       user: analytics_user
       password: analytics_pass

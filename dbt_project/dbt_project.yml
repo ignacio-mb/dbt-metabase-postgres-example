@@ -6,6 +6,7 @@ profile: 'shop_analytics'
 model-paths: ["models"]
 seed-paths: ["seeds"]
 macro-paths: ["macros"]
+test-paths: ["tests"]
 
 clean-targets:
   - "target"
@@ -13,12 +14,23 @@ clean-targets:
 
 vars:
   min_order_amount: 10
+  date_spine_start: '2024-01-01'
+  date_spine_end: '2024-12-31'
+
+seeds:
+  shop_analytics:
+    +schema: raw
 
 models:
   shop_analytics:
     staging:
-      +schema: dbt_models_staging
+      +schema: staging
       +materialized: view
+      +tags: ['daily']
+    intermediate:
+      +schema: intermediate
+      +materialized: ephemeral
     marts:
-      +schema: dbt_models_marts
+      +schema: marts
       +materialized: table
+      +tags: ['daily']
