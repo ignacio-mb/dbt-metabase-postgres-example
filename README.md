@@ -55,27 +55,31 @@ After setup, open `http://localhost:3000` and log in with the credentials above.
 
 > **Note:** The script requires `curl` and `python3` on your host machine (both are pre-installed on macOS). You can override the Metabase URL with `METABASE_URL=http://your-host:3000 ./scripts/setup-metabase.sh`.
 
-# Then inside the container:
-dbt deps
-dbt seed
-dbt run
-dbt test
-```
-
 ## Project structure
 
 ```
 dbt_project/
 ├── macros/
-│   ├── generate_schema_name.sql   # Writes to exact schema names (no prefix)
-│   └── utils.sql                  # safe_divide, days_between helpers
+│   ├── generate_schema_name.sql    # Writes to exact schema names (no prefix)
+│   └── utils.sql                   # safe_divide, days_between helpers
 ├── models/
-│   ├── staging/                   # 1:1 source mirrors (views)
-│   ├── intermediate/              # Business logic (ephemeral)
-│   └── marts/                     # Final tables for BI
-├── seeds/                         # Reference data (payment_methods, order_statuses)
-├── tests/                         # Singular data quality tests
+│   ├── staging/                    # 1:1 source mirrors (views)
+│   │   ├── sources.yml
+│   │   ├── schema.yml
+│   │   └── stg_*.sql
+│   ├── intermediate/               # Business logic (ephemeral)
+│   │   ├── schema.yml
+│   │   └── int_*.sql
+│   └── marts/                      # Final tables for BI
+│       ├── schema.yml
+│       ├── dim_*.sql
+│       ├── fct_*.sql
+│       └── monthly_revenue.sql
+├── seeds/                          # Reference data
+│   ├── order_statuses.csv
+│   └── payment_methods.csv
+├── tests/                          # Singular data quality tests
 ├── dbt_project.yml
-├── packages.yml                   # dbt_utils
+├── packages.yml                    # dbt_utils
 └── profiles.yml
 ```
