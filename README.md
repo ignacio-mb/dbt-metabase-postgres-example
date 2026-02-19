@@ -35,7 +35,7 @@ docker compose up --build
 chmod +x scripts/setup-metabase.sh
 ./scripts/setup-metabase.sh
 ```
-# to whipe transforms and re-run dbt without restarting the whole environment:
+to whipe transforms and re-run dbt without restarting the whole environment:
 chmod +x scripts/wipe-transforms.sh
 ./scripts/wipe-transforms.sh
 
