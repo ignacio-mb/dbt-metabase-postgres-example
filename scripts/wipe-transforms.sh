@@ -11,6 +11,36 @@ DB_NAME="${DB_NAME:-analytics}"
 DB_USER="${DB_USER:-analytics_user}"
 DB_PASS="${DB_PASS:-analytics_pass}"
 
+# ── Helper: trigger sync and wait ─────────────────────────────────────────────
+sync_and_wait() {
+  local db_id="$1"
+  local label="${2:-Sync}"
+  local max_wait="${3:-60}"
+
+  echo "  ${label}: triggering Metabase database sync for database id=${db_id}..."
+  curl -sf -X POST -H "X-Metabase-Session: ${SESSION}" \
+    "${METABASE_URL}/api/database/${db_id}/sync_schema" > /dev/null \
+    || curl -sf -X POST -H "X-Metabase-Session: ${SESSION}" \
+         "${METABASE_URL}/api/database/${db_id}/sync" > /dev/null \
+    || true
+
+  local intervals=$(( max_wait / 5 ))
+  echo "  ${label}: waiting for sync to complete (up to ${max_wait} s)..."
+  for i in $(seq 1 "${intervals}"); do
+    sleep 5
+    STATUS=$(curl -sf -H "X-Metabase-Session: ${SESSION}" \
+      "${METABASE_URL}/api/database/${db_id}" \
+      | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('initial_sync_status','complete'))" \
+      2>/dev/null || echo "complete")
+    if [ "${STATUS}" = "complete" ]; then
+      echo "  ${label}: sync complete"
+      return 0
+    fi
+    echo "  ${label}: still syncing... (${i}/${intervals})"
+  done
+  echo "  ${label}: WARNING — sync did not report completion within ${max_wait} s; proceeding anyway"
+}
+
 # ── 0. Verify psql is available ───────────────────────────────────────────────
 if ! command -v psql &>/dev/null; then
   echo "ERROR: psql not found in PATH. Install postgresql-client and retry." >&2
@@ -88,13 +118,24 @@ for schema in "${SCHEMAS[@]}"; do
   done <<< "${TABLES}"
 done
 
-# ── 3. Retire stale Metabase catalog entries ──────────────────────────────────
+# ── 3. First sync — let Metabase discover the dropped tables ──────────────────
 #
-# Deleting a transform removes the transform record but leaves the target table
-# entry in Metabase's metadata catalog (marked active=false).  The Create
-# Transform API returns 403 "A table with that name already exists" if ANY
-# catalog entry — active or not — matches the target schema+name.  We must
-# retire those stale entries so the next migration can create fresh transforms.
+# We sync BEFORE retiring catalog entries.  This way Metabase sees the tables
+# are gone and marks them inactive itself.  Any entries it misses we clean up
+# in step 4.
+#
+if [ -n "${DB_ID}" ]; then
+  echo ""
+  sync_and_wait "${DB_ID}" "Post-drop sync" 60
+fi
+
+# ── 4. Retire any remaining active catalog entries ────────────────────────────
+#
+# Even after sync, Metabase may leave stale entries marked active (especially
+# for tables that were part of transforms).  The Create Transform API returns
+# 403 "A table with that name already exists" if ANY catalog entry — active or
+# not — matches the target schema+name.  We deactivate everything in the
+# transform schemas so the next migration starts clean.
 #
 if [ -n "${DB_ID}" ]; then
   echo ""
@@ -108,11 +149,15 @@ if [ -n "${DB_ID}" ]; then
 import sys, json
 meta = json.load(sys.stdin)
 for t in meta.get('tables', []):
-    print(t['id'], t.get('schema','').lower())
+    tid = t['id']
+    schema = (t.get('schema') or '').lower()
+    active = t.get('active', True)
+    print(tid, schema, active)
 " 2>/dev/null || true)
 
+  RETIRED=0
   if [ -n "${ALL_TABLES}" ]; then
-    echo "${ALL_TABLES}" | while read -r table_id schema_lc; do
+    echo "${ALL_TABLES}" | while read -r table_id schema_lc is_active; do
       for s in ${STALE_SCHEMAS}; do
         if [ "${schema_lc}" = "${s}" ]; then
           curl -sf -X PUT \
@@ -120,7 +165,7 @@ for t in meta.get('tables', []):
             -H "Content-Type: application/json" \
             "${METABASE_URL}/api/table/${table_id}" \
             -d '{"active": false}' > /dev/null
-          echo "  Retired catalog entry: table_id=${table_id} schema=${schema_lc}"
+          echo "  Retired catalog entry: table_id=${table_id} schema=${schema_lc} (was active=${is_active})"
           break
         fi
       done
@@ -130,39 +175,14 @@ for t in meta.get('tables', []):
   fi
 fi
 
-# ── 4. Trigger Metabase sync and wait for completion ─────────────────────────
+# ── 5. Final sync — ensure catalog is clean ───────────────────────────────────
 #
-# The sync is async.  We poll until it finishes so the catalog reflects the
-# dropped tables before the next migration run begins.
+# A second sync after retirement ensures Metabase's internal state is fully
+# consistent before the next migration run.
 #
 if [ -n "${DB_ID}" ]; then
   echo ""
-  echo "Triggering Metabase database sync for database id=${DB_ID}..."
-  # Try sync_schema first (full re-scan); fall back to the lighter /sync endpoint
-  curl -sf -X POST -H "X-Metabase-Session: ${SESSION}" \
-    "${METABASE_URL}/api/database/${DB_ID}/sync_schema" > /dev/null \
-    || curl -sf -X POST -H "X-Metabase-Session: ${SESSION}" \
-         "${METABASE_URL}/api/database/${DB_ID}/sync" > /dev/null \
-    || true
-
-  echo "  Waiting for sync to complete (up to 60 s)..."
-  SYNCED=false
-  for i in $(seq 1 12); do
-    sleep 5
-    STATUS=$(curl -sf -H "X-Metabase-Session: ${SESSION}" \
-      "${METABASE_URL}/api/database/${DB_ID}" \
-      | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('initial_sync_status','complete'))" \
-      2>/dev/null || echo "complete")
-    if [ "${STATUS}" = "complete" ]; then
-      echo "  Sync complete"
-      SYNCED=true
-      break
-    fi
-    echo "  Still syncing... (${i}/12)"
-  done
-  if [ "${SYNCED}" = "false" ]; then
-    echo "  WARNING: sync did not report completion within 60 s; proceeding anyway"
-  fi
+  sync_and_wait "${DB_ID}" "Final sync" 60
 fi
 
 echo ""
